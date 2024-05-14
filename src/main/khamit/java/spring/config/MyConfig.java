@@ -2,7 +2,6 @@ package spring.config;
 
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -42,10 +41,9 @@ public class MyConfig {
         return viewResolver;
     }
 
-    @Bean
+    @Bean(value = "one")
     public DataSource dataSource() {
         ComboPooledDataSource cpds = new ComboPooledDataSource();
-
 
         try {
             System.out.println(appConfigPath);
@@ -61,10 +59,29 @@ public class MyConfig {
         return cpds;
     }
 
+    @Bean()
+    public DataSource dataSourceTwo() {
+        ComboPooledDataSource cpds = new ComboPooledDataSource();
+
+
+        try {
+            System.out.println(appConfigPath);
+            Properties appProps = new Properties();
+            appProps.load(new FileInputStream(appConfigPath));
+            cpds.setDriverClass(appProps.getProperty("jdbc.driver1"));
+            cpds.setJdbcUrl(appProps.getProperty("jdbc.url1"));
+            cpds.setUser(appProps.getProperty("jdbc.user1"));
+            cpds.setPassword(appProps.getProperty("jdbc.password1"));
+        } catch (PropertyVetoException | IOException e) {
+            throw new RuntimeException(e);
+        }
+        return cpds;
+    }
+
     @Bean
     public LocalSessionFactoryBean sf()  {
         LocalSessionFactoryBean lssf = new LocalSessionFactoryBean();
-        lssf.setDataSource(dataSource());
+        lssf.setDataSource(dataSourceTwo());
         lssf.setPackagesToScan("spring.entity");
         Properties props = new Properties();
         props.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
